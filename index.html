@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Study Hours Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@500;700&family=Figtree:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#E8EDEF;--card:#F7F9F9;--ink:#13222B;--mute:#5A6B74;--line:#CBD5D9;--acc:#127A68;--accInk:#fff;--panel:#0F191E;--led:#8DF2C3;--warn:#C2410C;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0B1115;--card:#141F25;--ink:#E4EEF0;--mute:#8CA0A8;--line:#26363E;--acc:#3FD1B0;--accInk:#06201A;--panel:#060C0F;--warn:#FB923C;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,sans-serif;line-height:1.45;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+[hidden]{display:none!important}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:1.25rem;margin:0}
+.now{font-family:"Chivo Mono",ui-monospace,monospace;color:var(--mute);font-size:.95rem}
+.sub{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.85rem;color:var(--mute);margin:-6px 0 12px}
+.sub button{background:none;border:0;color:var(--acc);font:600 .85rem Figtree,sans-serif;cursor:pointer;padding:0;text-decoration:underline}
+.panel{background:var(--panel);border-radius:18px;padding:22px 16px 20px;text-align:center}
+.seg{display:inline-flex;background:#ffffff14;border-radius:999px;padding:3px;margin-bottom:14px}
+.seg button{border:0;background:none;color:#B7C7CC;font:600 .9rem Figtree,sans-serif;padding:7px 18px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--led);color:#06201A}
+.digits{font-family:"Chivo Mono",ui-monospace,monospace;font-weight:700;font-size:clamp(2.6rem,15vw,5.6rem);letter-spacing:.02em;color:var(--led);text-shadow:0 0 18px #8DF2C355;font-variant-numeric:tabular-nums;line-height:1.1}
+.status{color:#9DB0B6;font-size:.9rem;min-height:1.3em;margin-top:4px}
+.setrow{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin:12px 0 0}
+.setrow label{color:#B7C7CC;font-size:.9rem}
+input{font:600 1rem Figtree,sans-serif;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+input[type=number]{width:84px}
+.chip{border:1px solid #ffffff33;background:none;color:#D5E2E5;border-radius:999px;padding:6px 12px;font:600 .85rem Figtree,sans-serif;cursor:pointer}
+.ctrl{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.btn{font:700 1rem Figtree,sans-serif;border-radius:12px;padding:12px 26px;border:1px solid transparent;cursor:pointer;min-width:120px}
+.btn.main{background:var(--led);color:#06201A}
+.btn.alt{background:none;border-color:#ffffff40;color:#E4EEF0}
+.btn.solid{background:var(--acc);color:var(--accInk);width:100%}
+button:disabled{opacity:.6;cursor:wait}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px}
+h2{font-size:1rem;margin:0 0 10px}
+.goal{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.goal label{color:var(--mute);font-size:.95rem}
+.bar{height:14px;background:var(--line);border-radius:999px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:999px;transition:width .4s}
+.msg{font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat b{display:block;font-family:"Chivo Mono",ui-monospace,monospace;font-size:1.3rem}
+.stat span{color:var(--mute);font-size:.85rem}
+.week{display:flex;gap:8px;align-items:flex-end;height:110px;margin-top:6px}
+.day{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:.75rem;color:var(--mute)}
+.day i{display:block;width:100%;background:var(--acc);border-radius:6px 6px 0 0;min-height:3px}
+.day.today{color:var(--ink);font-weight:700}
+.link{background:none;border:0;color:var(--warn);font:600 .85rem Figtree,sans-serif;cursor:pointer;margin-top:12px;padding:0;text-decoration:underline}
+#login{max-width:420px;margin:8vh auto 0}
+#login label{display:block;font-weight:600;margin:12px 0 4px}
+#login input{width:100%}
+.hint{color:var(--mute);font-size:.85rem;margin:4px 0 0}
+.err{color:var(--warn);font-weight:600;min-height:1.4em;margin:12px 0 0}
+@media (max-width:420px){.stat b{font-size:1.05rem}.btn{min-width:100px;padding:12px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <section id="login" class="card">
+    <h1>Study hours</h1>
+    <p class="hint">Enter your name to open your study log. Use the same name each time to see your hours.</p>
+    <form id="lgForm" autocomplete="off">
+      <label for="lgName">Your name</label>
+      <input id="lgName" maxlength="40" required>
+      <div id="lgExtra">
+        <label for="lgTok">Access token</label>
+        <input id="lgTok" type="password" autocomplete="off">
+        <p class="hint">Get this from the person who shared the app. You enter it once and it is remembered on this device only.</p>
+      </div>
+      <p><button class="link" type="button" id="lgMore" style="color:var(--acc);margin:0" hidden>Use a different token</button></p>
+      <div class="err" id="lgErr" role="alert"></div>
+      <button class="btn solid" id="lgBtn" type="submit">Open my study log</button>
+    </form>
+  </section>
+
+  <!-- APP -->
+  <div id="app" hidden>
+    <header><h1>Study hours</h1><div class="now" id="now" aria-label="Current time"></div></header>
+    <div class="sub"><span id="who"></span><span id="sync">Not synced yet</span><button id="switch">Switch user</button></div>
+
+    <section class="panel" aria-label="Study session">
+      <div class="seg" role="group" aria-label="Mode">
+        <button id="mSw" aria-pressed="true">Stopwatch</button>
+        <button id="mTm" aria-pressed="false">Timer</button>
+      </div>
+      <div class="digits" id="digits" role="timer" aria-live="off">00:00:00</div>
+      <div class="status" id="status">Press Start to begin studying.</div>
+      <div class="setrow" id="tmRow" hidden>
+        <label for="tmMin">Minutes</label>
+        <input type="number" id="tmMin" min="1" max="600" value="25">
+        <button class="chip" data-m="25">25</button><button class="chip" data-m="45">45</button><button class="chip" data-m="60">60</button><button class="chip" data-m="90">90</button>
+      </div>
+      <div class="ctrl">
+        <button class="btn main" id="go">Start</button>
+        <button class="btn alt" id="reset">Reset</button>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Daily goal">
+      <h2>Daily goal</h2>
+      <div class="goal">
+        <label for="goalIn">Study goal (hours)</label>
+        <input type="number" id="goalIn" min="0.5" max="24" step="0.5" value="2">
+      </div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar"><i id="fill"></i></div>
+      <div class="msg" id="goalMsg"></div>
+    </section>
+
+    <section class="card" aria-label="Totals">
+      <h2>Total hours studied</h2>
+      <div class="stats">
+        <div class="stat"><b id="sToday">0h 00m</b><span>Today</span></div>
+        <div class="stat"><b id="sWeek">0h 00m</b><span>Last 7 days</span></div>
+        <div class="stat"><b id="sAll">0h 00m</b><span>All time</span></div>
+      </div>
+      <div class="msg" id="allDec" style="margin-top:10px;color:var(--mute);font-weight:400"></div>
+      <div class="week" id="week" aria-label="Hours studied in the last 7 days"></div>
+      <button class="link" id="wipe">Clear all my study data</button>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var CFG_KEY="studyCfg.v2";
+  var SYNC_MS=30000;                 // save to GitHub every 30 seconds when something changed
+  /* ====== EDIT THIS ONE LINE (the repo name is not a secret) ====== */
+  var REPO="eamhad/study-hours";      // your private data repo, as owner/name
+  /* ================================================================ */
+  var cfg={name:"",repo:REPO,token:""};
+  try{var sv=JSON.parse(localStorage.getItem(CFG_KEY)||"{}");if(sv.name)cfg.name=sv.name;if(sv.token)cfg.token=sv.token}catch(e){}
+
+  var log={}, goal=2, sha=null, path="", ready=false, dirty=false, pushing=false;
+  var mode="sw", running=false, startTs=0, acc=0, lastCredit=0, target=25*60000, done=false;
+
+  /* ---------- helpers ---------- */
+  function dayKey(d){d=d||new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+  function pad(n){return String(n).padStart(2,"0")}
+  function hms(ms){var s=Math.floor(ms/1000);return pad(Math.floor(s/3600))+":"+pad(Math.floor(s%3600/60))+":"+pad(s%60)}
+  function hm(sec){var m=Math.floor(sec/60);return Math.floor(m/60)+"h "+pad(m%60)+"m"}
+  function elapsed(){return acc+(running?Date.now()-startTs:0)}
+  function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"user"}
+  function b64enc(s){return btoa(unescape(encodeURIComponent(s)))}
+  function b64dec(s){return decodeURIComponent(escape(atob(s.replace(/\s/g,""))))}
+  function cacheKey(){return "studyCache."+slug(cfg.name)}
+  function cacheSave(){try{localStorage.setItem(cacheKey(),JSON.stringify({log:log,goal:goal}))}catch(e){}}
+  function setSync(t){$("sync").textContent=t}
+
+  /* ---------- GitHub API ---------- */
+  function gh(method,url,body,keep){
+    return fetch("https://api.github.com"+url,{
+      method:method,cache:"no-store",keepalive:!!keep,
+      headers:{Authorization:"Bearer "+cfg.token,Accept:"application/vnd.github+json","Content-Type":"application/json"},
+      body:body?JSON.stringify(body):undefined
+    }).then(function(r){
+      return r.json().catch(function(){return {}}).then(function(j){
+        if(!r.ok){var e=new Error(j.message||("HTTP "+r.status));e.status=r.status;throw e}
+        return j;
+      });
+    });
+  }
+  function fileUrl(){return "/repos/"+cfg.repo+"/contents/"+path}
+
+  function pull(){
+    return gh("GET",fileUrl()).then(function(j){sha=j.sha;return JSON.parse(b64dec(j.content))},
+      function(e){if(e.status===404){sha=null;return null}throw e});
+  }
+  function merge(d){
+    if(!d||!d.log)return;
+    for(var k in d.log){log[k]=Math.max(log[k]||0,d.log[k])}
+  }
+  function snapshot(){
+    var out={};for(var k in log)out[k]=Math.round(log[k]*10)/10;
+    return JSON.stringify({name:cfg.name,goal:goal,log:out,updated:new Date().toISOString()},null,1);
+  }
+
+  function push(force,keep){
+    if(pushing||!ready)return Promise.resolve();
+    pushing=true;dirty=false;setSync("Saving…");
+    function put(){
+      var p={message:"Study log update "+new Date().toISOString(),content:b64enc(snapshot())};
+      if(sha)p.sha=sha;
+      return gh("PUT",fileUrl(),p,keep).then(function(j){sha=j.content.sha});
+    }
+    return put().catch(function(e){
+      if(e.status===409||e.status===422){          // file changed elsewhere: refresh and retry once
+        return pull().then(function(d){if(!force)merge(d);return put()});
+      }
+      throw e;
+    }).then(function(){
+      setSync("Saved to GitHub "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
+      cacheSave();stats();
+    },function(e){
+      dirty=true;
+      setSync(e.status===401?"Token rejected or expired. Use Switch user and enter a new token.":"Could not reach GitHub. Saved on this device, will retry.");
+    }).then(function(){pushing=false});
+  }
+
+  /* ---------- time logging ---------- */
+  function credit(){
+    var now=Date.now(),d=now-lastCredit;lastCredit=now;
+    if(d>0&&d<5000){var k=dayKey();log[k]=(log[k]||0)+d/1000;dirty=true}
+  }
+  function beep(){
+    try{var C=window.AudioContext||window.webkitAudioContext,c=new C(),o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(c.currentTime+.6)}catch(e){}
+  }
+
+  /* ---------- rendering ---------- */
+  function render(){
+    var e=elapsed(),ms=mode==="sw"?e:Math.max(target-e,0);
+    $("digits").textContent=hms(ms);
+    document.title=(running?hms(ms)+" · ":"")+"Study Hours Tracker";
+    $("go").textContent=running?"Pause":(e>0&&!done?"Resume":"Start");
+    var s=$("status");
+    if(done)s.textContent="Time’s up. Nice work!";
+    else if(running)s.textContent=mode==="sw"?"Studying… time is being counted.":"Countdown running…";
+    else s.textContent=e>0?"Paused. Your time so far is saved.":(mode==="sw"?"Press Start to begin studying.":"Set minutes, then press Start.");
+    $("now").textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    stats();
+  }
+  function stats(){
+    var today=log[dayKey()]||0,week=0,all=0,i,d,k,max=goal*3600;
+    for(k in log)all+=log[k];
+    var bars=[],names=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    for(i=6;i>=0;i--){d=new Date();d.setDate(d.getDate()-i);var v=log[dayKey(d)]||0;week+=v;bars.push({n:names[d.getDay()],v:v,t:i===0});if(v>max)max=v}
+    $("sToday").textContent=hm(today);$("sWeek").textContent=hm(week);$("sAll").textContent=hm(all);
+    $("allDec").textContent="That is "+(all/3600).toFixed(2)+" hours studied in total.";
+    var pct=Math.min(100,today/(goal*3600)*100);
+    $("fill").style.width=pct+"%";$("bar").setAttribute("aria-valuenow",Math.round(pct));
+    var left=goal*3600-today;
+    $("goalMsg").textContent=left<=0?"Goal reached! You studied "+hm(today)+" today.":hm(today)+" of "+goal+"h done · "+hm(left)+" to go";
+    var html="";
+    bars.forEach(function(b){html+='<div class="day'+(b.t?' today':'')+'"><i style="height:'+Math.max(3,b.v/max*80)+'px" title="'+hm(b.v)+'"></i><span>'+b.n+'</span></div>'});
+    $("week").innerHTML=html;
+  }
+
+  /* ---------- timer controls ---------- */
+  function start(){
+    if(done){acc=0;done=false}
+    if(mode==="tm"&&acc>=target)acc=0;
+    running=true;startTs=Date.now();lastCredit=startTs;
+  }
+  function pause(){
+    if(!running)return;
+    credit();acc+=Date.now()-startTs;running=false;cacheSave();push();
+  }
+  $("go").onclick=function(){running?pause():start();render()};
+  $("reset").onclick=function(){pause();acc=0;done=false;render()};
+  function setMode(m){
+    pause();acc=0;done=false;mode=m;
+    $("mSw").setAttribute("aria-pressed",m==="sw");$("mTm").setAttribute("aria-pressed",m==="tm");
+    $("tmRow").hidden=m!=="tm";render();
+  }
+  $("mSw").onclick=function(){setMode("sw")};
+  $("mTm").onclick=function(){setMode("tm")};
+  function setMin(v){v=Math.max(1,Math.min(600,parseInt(v,10)||25));target=v*60000;$("tmMin").value=v;if(!running){acc=0;done=false}render()}
+  $("tmMin").onchange=function(){setMin(this.value)};
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"),function(c){c.onclick=function(){setMin(c.dataset.m)}});
+  $("goalIn").onchange=function(){
+    var v=parseFloat(this.value);if(!(v>0))v=2;goal=Math.min(24,v);this.value=goal;
+    dirty=true;cacheSave();stats();
+  };
+  $("wipe").onclick=function(){
+    if(confirm("Delete all your saved study time, including the file on GitHub? This cannot be undone.")){
+      log={};acc=0;running=false;done=false;cacheSave();push(true);render();
+    }
+  };
+
+  /* ---------- login ---------- */
+  $("lgName").value=cfg.name||"";
+  $("lgTok").value=cfg.token||"";
+  $("lgExtra").hidden=!!cfg.token;$("lgMore").hidden=!cfg.token;
+  $("lgMore").onclick=function(){$("lgExtra").hidden=false;$("lgMore").hidden=true;$("lgTok").focus()};
+
+  $("lgForm").onsubmit=function(ev){
+    ev.preventDefault();
+    var name=$("lgName").value.trim(),tok=$("lgTok").value.trim(),err=$("lgErr");
+    if(!name){err.textContent="Enter your name.";return}
+    if(/YOUR-USERNAME/.test(REPO)){err.textContent="Setup needed: put your repository name at the top of the script in index.html.";return}
+    if(!tok){err.textContent="Enter the access token.";return}
+    cfg={name:name,repo:REPO,token:tok};path="study-data/"+slug(name)+".json";
+    err.textContent="Signing in…";$("lgBtn").disabled=true;
+    gh("GET","/repos/"+repo).then(function(){return pull()}).then(function(remote){
+      log={};goal=2;
+      try{var c=JSON.parse(localStorage.getItem(cacheKey())||"{}");if(c.log)log=c.log;if(c.goal>0)goal=c.goal}catch(e){}
+      if(remote){merge(remote);if(remote.goal>0)goal=remote.goal}
+      try{localStorage.setItem(CFG_KEY,JSON.stringify({name:cfg.name,token:cfg.token}))}catch(e){}
+      ready=true;dirty=!remote;
+      $("goalIn").value=goal;$("who").textContent="Signed in as "+name;
+      setSync(remote?"Loaded from GitHub":"New log created");
+      $("login").hidden=true;$("app").hidden=false;err.textContent="";
+      render();if(!remote)push();
+    }).catch(function(e){
+      err.textContent=e.status===401?"GitHub rejected the access token. Check it and try again.":
+        e.status===404?"Repository not found. Check REPO in index.html and that the token can access it.":
+        "Could not sign in: "+e.message;
+      $("lgExtra").hidden=false;$("lgMore").hidden=true;
+    }).then(function(){$("lgBtn").disabled=false});
+  };
+
+  $("switch").onclick=function(){
+    pause();
+    (dirty?push():Promise.resolve()).then(function(){
+      ready=false;acc=0;done=false;running=false;log={};
+      $("app").hidden=true;$("login").hidden=false;$("lgErr").textContent="";$("lgName").focus();
+    });
+  };
+
+  /* ---------- loops ---------- */
+  setInterval(function(){
+    if(!ready)return;
+    if(running){
+      credit();
+      if(mode==="tm"&&elapsed()>=target){acc=target;running=false;done=true;cacheSave();push();beep()}
+    }
+    render();
+  },250);
+  setInterval(function(){if(ready&&dirty){cacheSave();push()}},SYNC_MS);   // every 30 seconds
+  function flush(){if(ready&&running){credit()}if(ready&&dirty){cacheSave();push(false,true)}}
+  window.addEventListener("pagehide",flush);
+  document.addEventListener("visibilitychange",function(){if(document.hidden)flush()});
+})();
+</script>
+</body>
+</html>
